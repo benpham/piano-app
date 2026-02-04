@@ -5,6 +5,7 @@ const Piano = () => {
   const [activeKeys, setActiveKeys] = useState(new Set())
   const [sustain, setSustain] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [volume, setVolume] = useState(70)
   const samplerRef = useRef(null)
   const sustainedNotesRef = useRef(new Set())
 
@@ -74,12 +75,22 @@ const Piano = () => {
       }
     }).toDestination()
 
+    // Set initial volume (70% = -4.5dB approximately)
+    sampler.volume.value = Tone.gainToDb(volume / 100)
+
     samplerRef.current = sampler
 
     return () => {
       sampler.dispose()
     }
   }, [])
+
+  // Update volume when slider changes
+  useEffect(() => {
+    if (samplerRef.current) {
+      samplerRef.current.volume.value = Tone.gainToDb(volume / 100)
+    }
+  }, [volume])
 
   // Play a note
   const playNote = (note) => {
@@ -177,19 +188,19 @@ const Piano = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8">
+    <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-8 landscape:p-3">
       {/* Controls */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-sm text-gray-600">
+      <div className="flex justify-between items-center mb-4 sm:mb-6 landscape:mb-2">
+        <div className="text-xs sm:text-sm text-gray-600 landscape:text-xs">
           {isLoaded ? (
             <span className="text-green-600 font-semibold">Ready to play!</span>
           ) : (
-            <span className="text-orange-600">Loading piano samples...</span>
+            <span className="text-orange-600">Loading...</span>
           )}
         </div>
         <button
           onClick={toggleSustain}
-          className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm landscape:px-3 landscape:py-1.5 landscape:text-xs ${
             sustain
               ? 'bg-purple-600 text-white shadow-lg scale-105'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -200,9 +211,9 @@ const Piano = () => {
       </div>
 
       {/* Piano Keyboard */}
-      <div className="relative bg-gray-900 p-4 rounded-lg" style={{ height: '300px' }}>
+      <div className="relative bg-gray-900 p-2 sm:p-4 rounded-lg landscape:p-2" style={{ height: 'clamp(200px, 50vh, 400px)' }}>
         {/* White Keys */}
-        <div className="flex gap-1 h-full">
+        <div className="flex gap-0.5 sm:gap-1 h-full justify-center">
           {notes.filter(note => !isBlackKey(note)).map((note) => {
             const isActive = activeKeys.has(note)
             const keyboardHint = getKeyboardHint(note)
@@ -221,18 +232,18 @@ const Piano = () => {
                   e.preventDefault()
                   stopNote(note)
                 }}
-                className={`flex-1 rounded-b-lg cursor-pointer transition-all duration-75 border-2 border-gray-300 flex flex-col justify-end items-center pb-4 ${
+                className={`flex-1 rounded-b-lg cursor-pointer transition-all duration-75 border border-gray-300 sm:border-2 flex flex-col justify-end items-center pb-2 sm:pb-4 landscape:pb-1 ${
                   isActive
                     ? 'bg-gradient-to-b from-blue-400 to-blue-500 shadow-lg scale-95'
                     : 'bg-gradient-to-b from-white to-gray-100 hover:from-gray-50 hover:to-gray-200'
                 }`}
-                style={{ minWidth: '40px' }}
+                style={{ minWidth: '30px', maxWidth: '60px' }}
               >
-                <div className="text-xs font-semibold text-gray-600 mb-1">
+                <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1 landscape:hidden">
                   {note}
                 </div>
                 {keyboardHint && (
-                  <div className={`text-lg font-bold ${isActive ? 'text-white' : 'text-blue-600'}`}>
+                  <div className={`text-sm sm:text-lg font-bold landscape:text-xs ${isActive ? 'text-white' : 'text-blue-600'}`}>
                     {keyboardHint}
                   </div>
                 )}
@@ -242,7 +253,7 @@ const Piano = () => {
         </div>
 
         {/* Black Keys */}
-        <div className="absolute top-4 left-4 right-4 h-3/5 pointer-events-none">
+        <div className="absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-4 landscape:top-2 landscape:left-2 landscape:right-2 h-3/5 pointer-events-none">
           {notes.filter(note => isBlackKey(note)).map((note) => {
             const isActive = activeKeys.has(note)
             const keyboardHint = getKeyboardHint(note)
@@ -262,23 +273,23 @@ const Piano = () => {
                   e.preventDefault()
                   stopNote(note)
                 }}
-                className={`absolute rounded-b-lg cursor-pointer transition-all duration-75 pointer-events-auto flex flex-col justify-end items-center pb-3 ${
+                className={`absolute rounded-b-lg cursor-pointer transition-all duration-75 pointer-events-auto flex flex-col justify-end items-center pb-1 sm:pb-3 landscape:pb-1 ${
                   isActive
                     ? 'bg-gradient-to-b from-purple-600 to-purple-700 shadow-xl scale-95'
                     : 'bg-gradient-to-b from-gray-800 to-black hover:from-gray-700'
                 }`}
                 style={{
                   left: `${position}%`,
-                  width: '50px',
+                  width: 'clamp(35px, 5vw, 50px)',
                   height: '100%',
                   transform: 'translateX(-50%)'
                 }}
               >
-                <div className="text-xs font-semibold text-white mb-1">
+                <div className="text-[10px] sm:text-xs font-semibold text-white mb-0.5 sm:mb-1 landscape:hidden">
                   {note}
                 </div>
                 {keyboardHint && (
-                  <div className="text-sm font-bold text-yellow-300">
+                  <div className="text-xs sm:text-sm font-bold text-yellow-300 landscape:text-[10px]">
                     {keyboardHint}
                   </div>
                 )}
@@ -289,13 +300,32 @@ const Piano = () => {
       </div>
 
       {/* Instructions */}
-      <div className="mt-6 text-center text-sm text-gray-600">
+      <div className="mt-3 sm:mt-6 text-center text-xs sm:text-sm text-gray-600 landscape:mt-2 landscape:hidden">
         <p className="mb-2">
-          Use your keyboard: <span className="font-mono bg-gray-100 px-2 py-1 rounded">A W S E D F T G Y H U J K O L P ; '</span>
+          Use your keyboard: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-[10px] sm:text-xs">A W S E D F T G Y H U J K O L P ; '</span>
         </p>
         <p>
-          Press <span className="font-mono bg-gray-100 px-2 py-1 rounded">SPACE</span> to toggle sustain
+          Press <span className="font-mono bg-gray-100 px-2 py-1 rounded text-[10px] sm:text-xs">SPACE</span> to toggle sustain
         </p>
+      </div>
+
+      {/* Volume Control */}
+      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 landscape:bottom-2 landscape:right-2 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg shadow-md">
+        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+        </svg>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={volume}
+          onChange={(e) => setVolume(Number(e.target.value))}
+          className="w-20 sm:w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+          style={{
+            background: `linear-gradient(to right, rgb(147 51 234) 0%, rgb(147 51 234) ${volume}%, rgb(229 231 235) ${volume}%, rgb(229 231 235) 100%)`
+          }}
+        />
+        <span className="text-xs font-semibold text-gray-600 w-8">{volume}%</span>
       </div>
     </div>
   )
