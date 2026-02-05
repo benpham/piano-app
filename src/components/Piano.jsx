@@ -175,29 +175,49 @@ const Piano = () => {
 
   // Get position for black keys
   const getBlackKeyPosition = (note) => {
-    // Map each black key to its position relative to white keys
+    // Map each black key to the white key index it comes after
+    // Black keys sit between two white keys
     const blackKeyPositions = {
-      'F#3': 0, 'G#3': 1, 'A#3': 2,
-      'C#4': 4, 'D#4': 5,
-      'F#4': 7, 'G#4': 8, 'A#4': 9,
-      'C#5': 11, 'D#5': 12
+      'F#3': 0,   // Between F3 (0) and G3 (1)
+      'G#3': 1,   // Between G3 (1) and A3 (2)
+      'A#3': 2,   // Between A3 (2) and B3 (3)
+      'C#4': 4,   // Between C4 (4) and D4 (5)
+      'D#4': 5,   // Between D4 (5) and E4 (6)
+      'F#4': 7,   // Between F4 (7) and G4 (8)
+      'G#4': 8,   // Between G4 (8) and A4 (9)
+      'A#4': 9,   // Between A4 (9) and B4 (10)
+      'C#5': 11,  // Between C5 (11) and D5 (12)
+      'D#5': 12   // Between D5 (12) and E5 (13)
     }
 
-    const position = blackKeyPositions[note]
-    return position * 100 / 14 + 100 / 14 * 0.7
+    const whiteKeyIndex = blackKeyPositions[note]
+    // Position at the right edge of the white key (which is between two white keys)
+    return ((whiteKeyIndex + 1) * 100) / 14
   }
 
   return (
     <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-8 landscape:p-3">
       {/* Controls */}
       <div className="flex justify-between items-center mb-4 sm:mb-6 landscape:mb-2">
-        <div className="text-xs sm:text-sm text-gray-600 landscape:text-xs">
-          {isLoaded ? (
-            <span className="text-green-600 font-semibold">Ready to play!</span>
-          ) : (
-            <span className="text-orange-600">Loading...</span>
-          )}
+        {/* Volume Control */}
+        <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg shadow-md">
+          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+          </svg>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="w-20 sm:w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+            style={{
+              background: `linear-gradient(to right, rgb(147 51 234) 0%, rgb(147 51 234) ${volume}%, rgb(229 231 235) ${volume}%, rgb(229 231 235) 100%)`
+            }}
+          />
+          <span className="text-xs font-semibold text-gray-600 w-8">{volume}%</span>
         </div>
+
         <button
           onClick={toggleSustain}
           className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm landscape:px-3 landscape:py-1.5 landscape:text-xs ${
@@ -237,7 +257,7 @@ const Piano = () => {
                     ? 'bg-gradient-to-b from-blue-400 to-blue-500 shadow-lg scale-95'
                     : 'bg-gradient-to-b from-white to-gray-100 hover:from-gray-50 hover:to-gray-200'
                 }`}
-                style={{ minWidth: '30px', maxWidth: '60px' }}
+                style={{ minWidth: '30px', maxWidth: '80px' }}
               >
                 <div className="text-[10px] sm:text-xs font-semibold text-gray-600 mb-0.5 sm:mb-1 landscape:hidden">
                   {note}
@@ -280,7 +300,7 @@ const Piano = () => {
                 }`}
                 style={{
                   left: `${position}%`,
-                  width: 'clamp(35px, 5vw, 50px)',
+                  width: 'clamp(20px, 3.5vw, 50px)',
                   height: '100%',
                   transform: 'translateX(-50%)'
                 }}
@@ -307,25 +327,6 @@ const Piano = () => {
         <p>
           Press <span className="font-mono bg-gray-100 px-2 py-1 rounded text-[10px] sm:text-xs">SPACE</span> to toggle sustain
         </p>
-      </div>
-
-      {/* Volume Control */}
-      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 landscape:bottom-2 landscape:right-2 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg shadow-md">
-        <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
-        </svg>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={volume}
-          onChange={(e) => setVolume(Number(e.target.value))}
-          className="w-20 sm:w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-          style={{
-            background: `linear-gradient(to right, rgb(147 51 234) 0%, rgb(147 51 234) ${volume}%, rgb(229 231 235) ${volume}%, rgb(229 231 235) 100%)`
-          }}
-        />
-        <span className="text-xs font-semibold text-gray-600 w-8">{volume}%</span>
       </div>
     </div>
   )
